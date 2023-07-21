@@ -1,24 +1,33 @@
 import throttle from 'lodash.throttle';
 
-// Відстежуй на формі подію input, і щоразу записуй у локальне сховище об'єкт з полями email і message,
-//  у яких зберігай поточні значення полів форми.
-// Нехай ключем для сховища буде рядок "feedback-form-state".
-
 const formEl = document.querySelector('.feedback-form');
-console.log(formEl);
+let savedData = JSON.parse(localStorage.getItem('feedback-form-state'));
 
-formEl.addEventListener('input', onInput);
+updateOutput();
+
+formEl.addEventListener('input', throttle(onInput, 500));
 function onInput(evt) {
-  console.log(evt.target.value);
-
-  const {
-    elements: { email, message },
-  } = evt.currentTarget;
+  let { email, message } = formEl.elements;
 
   const data = {
     Email: email.value,
-    Message: message.value,
+    Message: message.value.trim(),
   };
-  console.log(data);
   localStorage.setItem('feedback-form-state', JSON.stringify(data));
+}
+
+function updateOutput() {
+  if (savedData) {
+    formEl.elements.email.value = savedData.Email || '';
+    formEl.elements.message.value = savedData.Message || '';
+  }
+
+  formEl.addEventListener('submit', onSubmit);
+
+  function onSubmit(evt) {
+    evt.preventDefault();
+    console.log(savedData);
+    localStorage.removeItem('feedback-form-state');
+    formEl.reset();
+  }
 }
